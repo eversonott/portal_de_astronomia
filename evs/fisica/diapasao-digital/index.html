@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- HTML5 -->
+<meta charset="utf-8"/>	
+  <title>Detector e Gerador de Frequência de Áudio</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .container { max-width: 500px; margin: auto; }
+    label { font-weight: bold; }
+    input[type="number"] { width: 120px; }
+    #freqBox { margin-top: 20px; }
+    #detectedFrequency { font-size: 2em; color: #2a7; }
+    button { margin-left: 10px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1 align="center">Detector e Gerador de Frequência</h1>
+	<h1 align="center">Diapasão Digital</h1>
+	<p align="center">Prof. Luciano soares Pedroso</p>
+	<p align="center">LaLEC - 2025</p>
+  
+  <p align="center">
+  
+  <!-- DETECTOR DE FREQUÊNCIA -->
+  <section>
+    <label for="btnStart">1. Detectar frequência do som ambiente:</label><br>
+    <button id="btnStart">Iniciar Detecção</button>
+    <button id="btnStop" disabled>Parar Detecção</button>
+    </p>
+    <div>
+      <p align="center">Frequência Detectada: <span id="detectedFrequency">--</span> 
+		Hz
+    </div>
+  </section>
+  
+  <p align="center">
+  
+  <!-- GERADOR DE TOM -->
+  <section id="freqBox">
+    <label for="inputFreq">2. Inserir frequência para tocar (Hz):</label><br>
+    <input type="number" step="1" min="20" max="20000" id="inputFreq" value="440">
+    <button id="btnPlay">Tocar Frequência</button>
+    <button id="btnStopTone" disabled>Parar Tom</button>
+  </section>
+</div>
+
+<script>
+// ----------- DETECTOR DE FREQUÊNCIA -----------
+let audioContext, analyser, microphone, dataArray, animationId;
+let running = false;
+
+function autoCorrelate(buffer, sampleRate) {
+    let SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) {
+        rms += buffer[i] * buffer[i];
+    }
+    rms = Math.sqrt(rms / SIZE);
+    if(rms < 0.01) return -1; // Sem som detectado
+
+    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+        if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+    }
+
+    buffer = buffer.slice(r1, r2);
+    SIZE = buffer.length;
+
+    let c = new Array(SIZE).fill(0);
+    for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j < SIZE - i; j++) {
+            c[i] = c[i] + buffer[j] * buffer[j + i];
+        }
+    }
+    let d = 0; while (c[d] > c[d+1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < SIZE; i++) {
+        if (c[i] > maxval) {
+            maxval = c[i];
+            maxpos = i;
+        }
+    }
+    let T0 = maxpos;
+    return sampleRate / T0;
+}
+
+async function startDetect() {
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  microphone = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  microphone.connect(analyser);
+  dataArray = new Float32Array(analyser.fftSize);
+  running = true;
+  detectFrequency();
+}
+
+function detectFrequency() {
+  analyser.getFloatTimeDomainData(dataArray);
+  const frequency = autoCorrelate(dataArray, audioContext.sampleRate);
+  if (frequency > 20 && frequency < 20000) {
+    document.getElementById('detectedFrequency').textContent = frequency.toFixed(1);
+  } else {
+    document.getElementById('detectedFrequency').textContent = '--';
+  }
+  if (running) {
+    animationId = requestAnimationFrame(detectFrequency);
+  }
+}
+
+function stopDetect() {
+  running = false;
+  if(animationId) cancelAnimationFrame(animationId);
+  if(audioContext) audioContext.close();
+  document.getElementById('detectedFrequency').textContent = '--';
+}
+
+// ----------- GERADOR DE TOM -----------
+let oscillator, gainNode, toneCtx;
+let playing = false;
+
+function playTone() {
+  if (playing) return;
+  let freq = parseFloat(document.getElementById('inputFreq').value);
+  if (isNaN(freq) || freq < 20 || freq > 20000) {
+    alert("Digite uma frequência entre 20Hz e 20.000Hz");
+    return;
+  }
+  toneCtx = new (window.AudioContext || window.webkitAudioContext)();
+  oscillator = toneCtx.createOscillator();
+  gainNode = toneCtx.createGain();
+  oscillator.type = "sine";
+  oscillator.frequency.value = freq;
+  gainNode.gain.value = 0.2;
+  oscillator.connect(gainNode).connect(toneCtx.destination);
+  oscillator.start();
+  playing = true;
+  document.getElementById('btnStopTone').disabled = false;
+}
+
+function stopTone() {
+  if (!playing) return;
+  oscillator.stop();
+  toneCtx.close();
+  playing = false;
+  document.getElementById('btnStopTone').disabled = true;
+}
+
+// ----------- EVENTOS DOS BOTÕES -----------
+document.getElementById('btnStart').onclick = function() {
+  startDetect();
+  this.disabled = true;
+  document.getElementById('btnStop').disabled = false;
+};
+document.getElementById('btnStop').onclick = function() {
+  stopDetect();
+  this.disabled = true;
+  document.getElementById('btnStart').disabled = false;
+};
+document.getElementById('btnPlay').onclick = function() {
+  playTone();
+};
+document.getElementById('btnStopTone').onclick = function() {
+  stopTone();
+};
+</script>
+</body>
+</html>

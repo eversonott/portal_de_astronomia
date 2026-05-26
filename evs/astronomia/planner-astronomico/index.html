@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVS - Planner Astronômico</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b0f1a;
+    color: white;
+}
+
+header {
+    text-align: center;
+    padding: 15px;
+    background: linear-gradient(90deg,#1a237e,#000);
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    height: calc(100vh - 80px);
+}
+
+@media(max-width:800px){
+    .container{
+        grid-template-columns:1fr;
+        grid-template-rows:320px 1fr;
+    }
+}
+
+.panel {
+    padding: 15px;
+    background:#12182b;
+    overflow:auto;
+}
+
+.card {
+    background:#1a2138;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.status {
+    padding:8px;
+    border-radius:8px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.ruim { background:#b71c1c; }
+.moderado { background:#f9a825; color:#000; }
+.excelente { background:#1b5e20; }
+
+select, input {
+    width:100%;
+    padding:10px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:none;
+    font-size:16px;
+    background:#2a3350;
+    color:white;
+}
+
+select option {
+    background:#1a2138;
+}
+
+iframe {
+    width:100%;
+    height:100%;
+    border:none;
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>🌌 Planner Astronômico</h2>
+<p>Prof. Luciano Soares Pedroso</p>
+<p>Alfenas-MG | 18h–21h</p>
+</header>
+
+<div class="container">
+
+<div class="panel">
+
+<select id="data" onchange="updateAll()">
+<option value="2026-04-16">16 Abril 2026</option>
+<option value="2026-04-23">23 Abril 2026</option>
+<option value="2026-04-30">30 Abril 2026</option>
+<option value="2026-05-07">7 Maio 2026</option>
+<option value="2026-05-14">14 Maio 2026</option>
+<option value="2026-05-21">21 Maio 2026</option>
+<option value="2026-05-28">28 Maio 2026</option>
+<option value="2026-06-04">4 Junho 2026</option>
+<option value="2026-06-11">11 Junho 2026</option>
+<option value="2026-06-18">18 Junho 2026</option>
+<option value="2026-06-25">25 Junho 2026</option>
+<option value="2026-07-02">2 Julho 2026</option>
+<option value="2026-07-09">9 Julho 2026</option>
+</select>
+
+<input type="time" id="hora" value="19:00" onchange="updateAll()">
+
+<div class="card">
+<h3>🌙 Lua</h3>
+<p id="lua"></p>
+</div>
+
+<div class="card">
+<h3>🌌 Qualidade do Céu</h3>
+<div id="status" class="status"></div>
+</div>
+
+<div class="card">
+<h3>🔭 Recomendações</h3>
+<p id="rec"></p>
+</div>
+
+</div>
+
+<iframe id="sky"
+src="https://stellarium-web.org/?lat=-21.4&lng=-45.9&alt=850&date=2026-04-16T19:00:00">
+</iframe>
+
+</div>
+
+<script>
+
+const dados = {
+    "2026-04-16": {lua:"🌕 Lua Cheia",status:"ruim",texto:"Ruim",rec:"❌ Céu muito iluminado. Observe a Lua e constelações principais."},
+    "2026-04-23": {lua:"🌗 Minguante",status:"excelente",texto:"Excelente",rec:"✅ Via Láctea e céu profundo. Ótima noite para observação!"},
+    "2026-04-30": {lua:"🌒 Crescente fina",status:"moderado",texto:"Boa após 20h",rec:"⏰ Observe após o pôr da Lua. Céu escuro após 20h."},
+    "2026-05-07": {lua:"🌔 Gibosa Crescente",status:"ruim",texto:"Ruim",rec:"❌ Lua domina o céu. Prefira observar a Lua em detalhes."},
+    "2026-05-14": {lua:"🌘 Minguante fina",status:"excelente",texto:"Excelente",rec:"✅ Ótimo para céu profundo. Galáxias e nebulosas visíveis."},
+    "2026-05-21": {lua:"🌒 Crescente",status:"moderado",texto:"Boa",rec:"⏰ Melhora ao longo da noite. Aguarde a Lua se pôr."},
+    "2026-05-28": {lua:"🌖 Quase Cheia",status:"ruim",texto:"Ruim",rec:"❌ Céu muito iluminado. Ideal para observar a Lua."},
+    "2026-06-04": {lua:"🌗 Minguante",status:"excelente",texto:"Excelente",rec:"✅ Via Láctea excelente. Céu escuro a noite toda."},
+    "2026-06-11": {lua:"🌘 Minguante fina",status:"excelente",texto:"Excelente",rec:"✅ Melhor condição do mês. Céu profundo perfeito!"},
+    "2026-06-18": {lua:"🌒 Crescente",status:"moderado",texto:"Boa após 20h",rec:"⏰ Boa janela após pôr da Lua. Aproveite o início da noite."},
+    "2026-06-25": {lua:"🌖 Quase Cheia",status:"ruim",texto:"Ruim",rec:"❌ Lua muito forte. Observe apenas a Lua e planetas brilhantes."},
+    "2026-07-02": {lua:"🌗 Minguante",status:"moderado",texto:"Boa até 20h",rec:"⏰ Observe antes da Lua nascer. Janela curta mas aproveitável."},
+    "2026-07-09": {lua:"🌘 Minguante fina",status:"excelente",texto:"Excelente",rec:"✅ Melhor condição do período. Céu escuro e Via Láctea visível!"}
+};
+
+function updateAll(){
+    let d = document.getElementById("data").value;
+    let h = document.getElementById("hora").value;
+
+    let info = dados[d];
+
+    document.getElementById("lua").innerHTML = info.lua;
+    document.getElementById("rec").innerHTML = info.rec;
+
+    let statusDiv = document.getElementById("status");
+    statusDiv.className = "status " + info.status;
+    statusDiv.innerText = info.texto;
+
+    // URL corrigida para o Stellarium Web (formato atual)
+    let novaURL = `https://stellarium-web.org/?lat=-21.4&lng=-45.9&alt=850&date=${d}T${h}:00`;
+
+    document.getElementById("sky").src = novaURL;
+}
+
+// Inicializa o planner
+updateAll();
+
+</script>
+
+</body>
+</html>

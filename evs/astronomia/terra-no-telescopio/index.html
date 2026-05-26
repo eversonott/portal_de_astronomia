@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8"/>	
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EVS - Velocidade Linear da Terra (observação da Lua pelo Telescópio)</title>
+  <link rel="icon" href="EVS.png"></head>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --bg: #f7fafc;
+      --card-bg: white;
+      --text: #0f172a;
+      --text-light: #64748b;
+      --border: #e6e9ef;
+      --code-bg: #0b1220;
+      --code-text: #cfe8ff;
+      --equation-bg: #fff7ed;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+      padding: 24px;
+      max-width: 900px;
+      margin: 12px auto;
+      transition: all 0.3s ease;
+    }
+    
+    h2, h3, h4 {
+      margin-top: 0;
+      color: var(--text);
+    }
+    
+    h2 {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+    
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .input-help {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    
+    input[type=text], input[type=number], select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+    
+    input[type=text]:focus, input[type=number]:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .col {
+      flex: 1;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 0;
+      margin-top: 16px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background: var(--primary-dark);
+    }
+    
+    button:active {
+      transform: translateY(1px);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #475569;
+    }
+    
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 16px;
+      border-radius: 8px;
+      overflow: auto;
+      font-size: 0.9rem;
+    }
+    
+    .small {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    
+    .result {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .equation {
+      background: var(--equation-bg);
+      border-left: 4px solid var(--warning);
+      padding: 16px;
+      margin-top: 16px;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .value-card {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-left: 3px solid var(--primary);
+    }
+    
+    .value-card .label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    
+    .value-card .value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .comparison {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    
+    .comparison-item {
+      flex: 1;
+      text-align: center;
+      padding: 16px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .comparison-item .title {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    .comparison-item .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    
+    .comparison-item.measured .value {
+      color: var(--primary);
+    }
+    
+    .comparison-item.theoretical .value {
+      color: var(--success);
+    }
+    
+    .comparison-item.difference .value {
+      color: var(--warning);
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .file-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 16px;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+    
+    .file-upload-area:hover {
+      border-color: var(--primary);
+    }
+    
+    .file-upload-area.highlight {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+    
+    .file-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: var(--text-light);
+    }
+    
+    .step-indicator {
+      display: flex;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    
+    .step {
+      flex: 1;
+      text-align: center;
+      padding: 8px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-weight: 600;
+    }
+    
+    .step.active .step-number {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .step-line {
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+    
+    .pdf-report {
+      display: none;
+      background: white;
+      padding: 24px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .pdf-report .header {
+      text-align: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .pdf-report .section {
+      margin-bottom: 20px;
+    }
+    
+    .pdf-report .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    
+    .pdf-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+    
+    .pdf-table th, .pdf-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .pdf-table th {
+      background-color: #f8fafc;
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      .row {
+        flex-direction: column;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .comparison {
+        flex-direction: column;
+      }
+      
+      .step-indicator {
+        flex-direction: column;
+        gap: 16px;
+      }
+      
+      .step-line {
+        display: none;
+      }
+      
+      .pdf-table {
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h2>EVS - Velocidade Linear da Terra (Observação da Lua via Ocular de 
+	Telescópio)</h2>
+    <p><strong>Prof. Luciano</strong> | <strong>Discentes:</strong> Júlio e Camila</p>
+    
+    <div class="step-indicator">
+      <div class="step-line"></div>
+      <div class="step active">
+        <div class="step-number">1</div>
+        <div class="small">Configuração</div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="small">Medição</div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="small">Resultados</div>
+      </div>
+    </div>
+    
+    <p class="small">Esta calculadora determina a velocidade linear da Terra com base na observação da Lua através de um telescópio. Insira os parâmetros do experimento ou carregue dados de medição.</p>
+
+    <h3>Configuração do Telescópio</h3>
+    <div class="grid">
+      <div>
+        <label for="fobj">Distância focal da objetiva (mm)</label>
+        <input id="fobj" type="number" value="1300" step="1" />
+        <div class="input-help">Distância focal da lente objetiva do telescópio</div>
+      </div>
+      <div>
+        <label for="feye">Distância focal da ocular (mm)</label>
+        <input id="feye" type="number" value="40" step="0.1" />
+        <div class="input-help">Distância focal da ocular utilizada</div>
+      </div>
+      <div>
+        <label for="afov">Campo aparente da ocular (graus)</label>
+        <input id="afov" type="number" value="40" step="0.1" />
+        <div class="input-help">Campo de visão aparente da ocular</div>
+      </div>
+      <div>
+        <label for="lat">Latitude do local (graus)</label>
+        <input id="lat" type="number" value="-21.43" step="0.0001" />
+        <div class="input-help">Use sinal negativo para latitudes no hemisfério Sul</div>
+      </div>
+    </div>
+
+    <h3>Medição do Tempo de Travessia</h3>
+    <div class="row">
+      <div class="col">
+        <label for="tmeas">Tempo de travessia medido (s)</label>
+        <input id="tmeas" type="number" value="157" step="0.1" />
+        <div class="input-help">Tempo entre o máximo e mínimo de iluminância</div>
+      </div>
+      <div class="col">
+        <label for="dobro">Considerar tempo total?</label>
+        <select id="dobro">
+          <option value="true" selected>Sim (2 × tempo medido)</option>
+          <option value="false">Não (apenas tempo informado)</option>
+        </select>
+        <div class="input-help">Dobra o tempo para considerar ingresso + egresso</div>
+      </div>
+    </div>
+
+    <h3>Ou carregue dados de medição</h3>
+    <div class="file-upload-area" id="fileUploadArea">
+      <div class="file-icon">&#128202;</div>
+      <p>Arraste um arquivo CSV aqui ou clique para selecionar</p>
+      <p class="small">Colunas: <code>Tempo (s)</code>, <code>Iluminância (lx)</code></p>
+      <input id="file" type="file" accept=".csv,.xlsx,.xls" style="display: none;" />
+    </div>
+    <div class="small">Se carregar CSV/XLSX, o sistema extrairá automaticamente o tempo de travessia (pico &#8594; mínimo subsequente).</div>
+
+    <button id="calc">
+      <span id="calcText">Calcular Velocidade Linear</span>
+      <div class="loading" id="calcLoading">
+        <div class="spinner"></div>
+        <div>Calculando...</div>
+      </div>
+    </button>
+
+    <div id="output" class="result" style="display:none">
+      <h3>Resultados do Cálculo</h3>
+      
+      <div class="comparison">
+        <div class="comparison-item measured">
+          <div class="title">Velocidade Medida</div>
+          <div class="value" id="measuredSpeed">0.0 m/s</div>
+        </div>
+        <div class="comparison-item theoretical">
+          <div class="title">Velocidade Teórica</div>
+          <div class="value" id="theoreticalSpeed">0.0 m/s</div>
+        </div>
+        <div class="comparison-item difference">
+          <div class="title">Diferença</div>
+          <div class="value" id="differencePercent">0.0 %</div>
+        </div>
+      </div>
+      
+      <h4>Detalhes dos Cálculos</h4>
+      <div id="numbers"></div>
+      
+      <div class="equation">
+        <strong>Equações Utilizadas</strong>
+        <div style="margin-top:12px">
+          <div>Ampliação: \(M=\dfrac{f_{obj}}{f_{eye}}\)</div>
+          <div>Campo real (graus): \(\mathrm{FOV}_{real}=\dfrac{\mathrm{AFOV}}{M}\)</div>
+          <div>Campo real (rad): \(\mathrm{FOV}_{rad}=\mathrm{FOV}_{real}\times\dfrac{\pi}{180}\)</div>
+          <div>Velocidade angular medida: \(\omega_{meas}=\dfrac{\mathrm{FOV}_{rad}}{t_{trav}}\)</div>
+          <div>Velocidade angular da Terra: \(\omega_{\oplus}=\dfrac{2\pi}{86400}\ \mathrm{rad/s}\)</div>
+          <div>Se assumirmos \(\omega_{meas}=\omega_{\oplus}\cos\varphi\): \(\varphi_{impl}=\arccos\left(\dfrac{\omega_{meas}}{\omega_{\oplus}}\right)\)</div>
+          <div>Velocidade linear na superfície: \(v=\omega_{\oplus} R_{\oplus}\cos\varphi\)</div>
+        </div>
+      </div>
+
+      <h4>Visualização dos Dados (se CSV carregado)</h4>
+      <canvas id="plot" width="800" height="200" style="border:1px solid #e6eef8; display:none; max-width: 100%;"></canvas>
+
+      <h4>Exportar Resultados</h4>
+      <button id="download" class="secondary">&#128229; Baixar Relatório (PDF)</button>
+      <button id="showReport" class="secondary">Visualizar Relatório</button>
+      
+      <div id="pdfReport" class="pdf-report">
+        <div class="header">
+          <h2>Relatório - Velocidade Linear da Terra</h2>
+          <p>Observação da Lua via Ocular</p>
+          <p><strong>Prof. Luciano</strong> | <strong>Discentes:</strong> Júlio e Camila</p>
+          <p id="reportDate"></p>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Parâmetros do Experimento</div>
+          <table class="pdf-table">
+            <tr>
+              <th>Parâmetro</th>
+              <th>Valor</th>
+            </tr>
+            <tr>
+              <td>Distância focal da objetiva (mm)</td>
+              <td id="reportFobj"></td>
+            </tr>
+            <tr>
+              <td>Distância focal da ocular (mm)</td>
+              <td id="reportFeye"></td>
+            </tr>
+            <tr>
+              <td>Campo aparente da ocular (graus)</td>
+              <td id="reportAfov"></td>
+            </tr>
+            <tr>
+              <td>Latitude do local (graus)</td>
+              <td id="reportLat"></td>
+            </tr>
+            <tr>
+              <td>Tempo de travessia (s)</td>
+              <td id="reportTmeas"></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Resultados Principais</div>
+          <table class="pdf-table">
+            <tr>
+              <th>Parâmetro</th>
+              <th>Valor</th>
+            </tr>
+            <tr>
+              <td>Velocidade Linear Medida (m/s)</td>
+              <td id="reportVmeas"></td>
+            </tr>
+            <tr>
+              <td>Velocidade Linear Teórica (m/s)</td>
+              <td id="reportVtheoretical"></td>
+            </tr>
+            <tr>
+              <td>Diferença Percentual</td>
+              <td id="reportDiff"></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Detalhes dos Cálculos</div>
+          <table class="pdf-table">
+            <tr>
+              <th>Parâmetro</th>
+              <th>Valor</th>
+            </tr>
+            <tr>
+              <td>Ampliação (M)</td>
+              <td id="reportM"></td>
+            </tr>
+            <tr>
+              <td>Campo Real (graus)</td>
+              <td id="reportTrueFovDeg"></td>
+            </tr>
+            <tr>
+              <td>Campo Real (radianos)</td>
+              <td id="reportTrueFovRad"></td>
+            </tr>
+            <tr>
+              <td>Velocidade Angular Medida (rad/s)</td>
+              <td id="reportOmegaMeas"></td>
+            </tr>
+            <tr>
+              <td>Razão vs Rotação Terrestre</td>
+              <td id="reportRatio"></td>
+            </tr>
+            <tr>
+              <td>Latitude Implicada (graus)</td>
+              <td id="reportImpliedLat"></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div class="section">
+          <div class="section-title">Observações</div>
+          <ul>
+            <li>O cálculo assume que o movimento observado se deve principalmente à rotação da Terra projetada no plano do campo da ocular.</li>
+            <li>Efeitos de declinação, paralaxe lunar e movimentos instrumentais podem introduzir desvios.</li>
+            <li>Para maior precisão, realize múltiplas medições e calcule a média.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" id="globalLoading" style="display:none">
+      <div class="spinner"></div>
+      <div>Processando dados...</div>
+    </div>
+
+    <hr />
+    <div class="small">
+      <h4>Observações Importantes</h4>
+      <ul>
+        <li>O cálculo assume que o movimento observado se deve principalmente à rotação da Terra projetada no plano do campo da ocular.</li>
+        <li>Efeitos de declinação, paralaxe lunar e movimentos instrumentais podem introduzir desvios.</li>
+        <li>Para maior precisão, realize múltiplas medições e calcule a média.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Constantes
+    const R_EARTH = 6371000.0; // m
+    const OMEGA_EARTH = 2 * Math.PI / 86400.0; // rad/s
+
+    const el = id => document.getElementById(id);
+
+    let lastResults = null;
+
+    // Elementos da UI
+    const calcButton = el('calc');
+    const calcText = el('calcText');
+    const calcLoading = el('calcLoading');
+    const globalLoading = el('globalLoading');
+    const fileUploadArea = el('fileUploadArea');
+    const fileInput = el('file');
+
+    // Configurar área de upload de arquivo
+    fileUploadArea.addEventListener('click', () => fileInput.click());
+    
+    fileUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileUploadArea.classList.add('highlight');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', () => {
+      fileUploadArea.classList.remove('highlight');
+    });
+    
+    fileUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileUploadArea.classList.remove('highlight');
+      
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+      }
+    });
+
+    function showLoading(show) {
+      if (show) {
+        calcText.style.display = 'none';
+        calcLoading.style.display = 'block';
+        globalLoading.style.display = 'block';
+      } else {
+        calcText.style.display = 'block';
+        calcLoading.style.display = 'none';
+        globalLoading.style.display = 'none';
+      }
+    }
+
+    function compute(t_meas, opts) {
+      // opts: fobj, feye, afov_deg, lat_deg
+      const M = opts.fobj / opts.feye;
+      const trueFovDeg = opts.afov_deg / M;
+      const trueFovRad = trueFovDeg * Math.PI / 180.0;
+      const omega_meas = trueFovRad / t_meas; // rad/s
+      const omega_meas_deg_per_h = omega_meas * 180 / Math.PI * 3600.0;
+      const ratio = omega_meas / OMEGA_EARTH;
+      let implied_lat_deg = null;
+      if (Math.abs(ratio) <= 1) {
+        implied_lat_deg = Math.acos(ratio) * 180 / Math.PI;
+      }
+      const v_meas = omega_meas * R_EARTH; // m/s (if interpreted as full Earth rotation component)
+      const v_theoretical = OMEGA_EARTH * R_EARTH * Math.cos(opts.lat_deg * Math.PI / 180.0);
+      const percent_diff = (v_meas - v_theoretical) / v_theoretical * 100.0;
+
+      return {
+        M, trueFovDeg, trueFovRad, omega_meas, omega_meas_deg_per_h, ratio, implied_lat_deg, v_meas, v_theoretical, percent_diff
+      };
+    }
+
+    function showResults(t_used, opts, res) {
+      el('output').style.display = 'block';
+      
+      // Atualizar comparação visual
+      el('measuredSpeed').textContent = res.v_meas.toFixed(3) + ' m/s';
+      el('theoreticalSpeed').textContent = res.v_theoretical.toFixed(3) + ' m/s';
+      el('differencePercent').textContent = res.percent_diff.toFixed(3) + ' %';
+      
+      // Detalhes numéricos
+      const numbers = [];
+      numbers.push('<div class="value-card"><div class="label">Tempo usado (s)</div><div class="value">' + t_used.toFixed(3) + '</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Ampliação M</div><div class="value">' + res.M.toFixed(3) + '×</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Campo Real (graus)</div><div class="value">' + res.trueFovDeg.toFixed(6) + '°</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Campo Real (radianos)</div><div class="value">' + res.trueFovRad.toExponential(6) + ' rad</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Velocidade Angular Medida</div><div class="value">' + res.omega_meas.toExponential(6) + ' rad/s<br>(' + res.omega_meas_deg_per_h.toFixed(3) + ' °/h)</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Razão vs Rotação Terrestre</div><div class="value">' + res.ratio.toFixed(6) + '</div></div>');
+      numbers.push('<div class="value-card"><div class="label">Latitude Implicada (°)</div><div class="value">' + (res.implied_lat_deg ? res.implied_lat_deg.toFixed(3) : 'não definida (|razão|>1)') + '</div></div>');
+
+      el('numbers').innerHTML = numbers.join('');
+
+      // Atualizar indicador de etapas
+      document.querySelectorAll('.step').forEach((step, index) => {
+        if (index === 2) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
+
+      lastResults = { t_used, opts, res, timestamp: new Date().toISOString() };
+      
+      // Atualizar relatório PDF
+      updatePDFReport(t_used, opts, res);
+    }
+
+    // Atualizar o relatório PDF
+    function updatePDFReport(t_used, opts, res) {
+      // Data do relatório
+      const now = new Date();
+      el('reportDate').textContent = `Data: ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
+      
+      // Parâmetros do experimento
+      el('reportFobj').textContent = `${opts.fobj} mm`;
+      el('reportFeye').textContent = `${opts.feye} mm`;
+      el('reportAfov').textContent = `${opts.afov_deg}°`;
+      el('reportLat').textContent = `${opts.lat_deg}°`;
+      el('reportTmeas').textContent = `${t_used.toFixed(3)} s`;
+      
+      // Resultados principais
+      el('reportVmeas').textContent = `${res.v_meas.toFixed(3)} m/s`;
+      el('reportVtheoretical').textContent = `${res.v_theoretical.toFixed(3)} m/s`;
+      el('reportDiff').textContent = `${res.percent_diff.toFixed(3)} %`;
+      
+      // Detalhes dos cálculos
+      el('reportM').textContent = `${res.M.toFixed(3)}×`;
+      el('reportTrueFovDeg').textContent = `${res.trueFovDeg.toFixed(6)}°`;
+      el('reportTrueFovRad').textContent = `${res.trueFovRad.toExponential(6)} rad`;
+      el('reportOmegaMeas').textContent = `${res.omega_meas.toExponential(6)} rad/s`;
+      el('reportRatio').textContent = `${res.ratio.toFixed(6)}`;
+      el('reportImpliedLat').textContent = res.implied_lat_deg ? `${res.implied_lat_deg.toFixed(3)}°` : 'não definida (|razão|>1)';
+    }
+
+    // CSV/XLSX handling
+    fileInput.addEventListener('change', function (e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      const name = f.name.toLowerCase();
+      if (name.endsWith('.csv')) {
+        showLoading(true);
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const text = ev.target.result;
+          parseCSVAndCompute(text);
+          showLoading(false);
+        };
+        reader.readAsText(f);
+      } else {
+        alert('Formato não-CSV detectado. Este demo aceita CSV diretamente. Converta seu XLS/XLSX para CSV ou informe o tempo manualmente.');
+      }
+    });
+
+    function parseCSVAndCompute(text) {
+      // simples: dividir por linhas, detectar cabeçalho com "time" e "illumin" e extrair colunas
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      const header = lines[0].split(/,|;|\t/).map(h => h.trim().toLowerCase());
+      const timeIdx = header.findIndex(h => h.includes('time') || h.includes('tempo'));
+      const luxIdx = header.findIndex(h => h.includes('lux') || h.includes('illumin'));
+      if (timeIdx < 0 || luxIdx < 0) {
+        alert('Não encontrei colunas Time e Illuminance no CSV. Renomeie cabeçalho para "Time (s)" e "Illuminance (lx)".');
+        return;
+      }
+      const data = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(/,|;|\t/);
+        const t = parseFloat(cols[timeIdx]);
+        const lux = parseFloat(cols[luxIdx]);
+        if (!isNaN(t) && !isNaN(lux)) data.push({ t, lux });
+      }
+      if (data.length < 3) {
+        alert('Poucos dados após parsing. Verifique arquivo.');
+        return;
+      }
+      // encontrar índice do max (assume pico) e mínimo subsequente
+      let imax = 0;
+      for (let i = 1; i < data.length; i++) {
+        if (data[i].lux > data[imax].lux) imax = i;
+      }
+      // encontrar mínimo a partir de imax
+      let imin = imax;
+      for (let i = imax; i < data.length; i++) {
+        if (data[i].lux < data[imin].lux) imin = i;
+      }
+      // tempo entre pico e mínimo
+      const tmeas = data[imin].t - data[imax].t;
+
+      // preparar: substituir input tmeas e recalcular
+      el('tmeas').value = tmeas.toFixed(3);
+      // mostrar plot
+      drawPlot(data, imax, imin);
+      // atualizar indicador de etapas
+      document.querySelectorAll('.step').forEach((step, index) => {
+        if (index === 1) {
+          step.classList.add('active');
+        } else if (index > 1) {
+          step.classList.remove('active');
+        }
+      });
+      // disparar cálculo automático
+      document.querySelector('#calc').click();
+    }
+
+    function drawPlot(data, imax, imin) {
+      const canvas = el('plot');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block';
+      // limpar
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // margens
+      const L = 40, R = 20, T = 10, B = 30;
+      const w = canvas.width - L - R;
+      const h = canvas.height - T - B;
+      const tmin = data[0].t, tmax = data[data.length - 1].t;
+      const luxmin = Math.min(...data.map(d => d.lux));
+      const luxmax = Math.max(...data.map(d => d.lux));
+      // eixos
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.beginPath();
+      ctx.rect(L - 1, T - 1, w + 2, h + 2);
+      ctx.stroke();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '12px Arial';
+      // plot line
+      ctx.beginPath();
+      for (let i = 0; i < data.length; i++) {
+        const x = L + ((data[i].t - tmin) / (tmax - tmin)) * w;
+        const y = T + h - ((data[i].lux - luxmin) / (luxmax - luxmin)) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#0b1220';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // marcar imax e imin
+      const ximax = L + ((data[imax].t - tmin) / (tmax - tmin)) * w;
+      const yimax = T + h - ((data[imax].lux - luxmin) / (luxmax - luxmin)) * h;
+      ctx.fillStyle = 'green';
+      ctx.beginPath();
+      ctx.arc(ximax, yimax, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      const ximin = L + ((data[imin].t - tmin) / (tmax - tmin)) * w;
+      const yimin = T + h - ((data[imin].lux - luxmin) / (luxmax - luxmin)) * h;
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(ximin, yimin, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      // labels
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText('t (s)', L + w / 2, canvas.height - 6);
+      ctx.save();
+      ctx.translate(6, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Illuminance (lx)', 0, 0);
+      ctx.restore();
+    }
+
+    calcButton.addEventListener('click', function () {
+      showLoading(true);
+      
+      // Pequeno atraso para permitir a animação de carregamento
+      setTimeout(() => {
+        let tmeas = parseFloat(el('tmeas').value);
+        const dobro = (el('dobro').value === 'true');
+        if (dobro) tmeas = tmeas * 2.0;
+        const opts = {
+          fobj: parseFloat(el('fobj').value),
+          feye: parseFloat(el('feye').value),
+          afov_deg: parseFloat(el('afov').value),
+          lat_deg: parseFloat(el('lat').value)
+        };
+        if (!(opts.fobj > 0 && opts.feye > 0 && opts.afov_deg > 0 && !isNaN(tmeas) && tmeas > 0)) {
+          alert('Preencha os parâmetros corretamente.');
+          showLoading(false);
+          return;
+        }
+        const res = compute(tmeas, opts);
+        showResults(tmeas, opts, res);
+        showLoading(false);
+      }, 500);
+    });
+
+    // Visualizar relatório
+    el('showReport').addEventListener('click', function() {
+      const pdfReport = el('pdfReport');
+      if (pdfReport.style.display === 'none') {
+        pdfReport.style.display = 'block';
+        this.textContent = 'Ocultar Relatório';
+      } else {
+        pdfReport.style.display = 'none';
+        this.textContent = 'Visualizar Relatório';
+      }
+    });
+
+    // Gerar e baixar PDF --- CÓDIGO CORRIGIDO ---
+    el('download').addEventListener('click', function () {
+      if (!lastResults) {
+        alert('Sem resultados para exportar.');
+        return;
+      }
+      
+      showLoading(true);
+      
+      const { jsPDF } = window.jspdf;
+      const pdfReport = el('pdfReport');
+      
+      // Garantir que o relatório esteja visível para o html2canvas capturá-lo corretamente
+      const originalDisplay = pdfReport.style.display;
+      pdfReport.style.display = 'block';
+
+      // Adicionar uma pequena pausa para garantir que o DOM seja totalmente renderizado
+      setTimeout(() => {
+        html2canvas(pdfReport, {
+          scale: 2, // Aumenta a resolução da imagem
+          useCORS: true,
+          logging: false,
+          windowWidth: pdfReport.scrollWidth,
+          windowHeight: pdfReport.scrollHeight
+        }).then(canvas => {
+          // Restaurar a visibilidade original
+          pdfReport.style.display = originalDisplay;
+
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          
+          const margin = 10;
+          const usableWidth = pdfWidth - margin * 2;
+          const usableHeight = pdfHeight - margin * 2;
+
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const canvasRatio = canvasHeight / canvasWidth;
+
+          const imgHeight = usableWidth * canvasRatio;
+          let heightLeft = imgHeight;
+          let position = 0;
+
+          // Adiciona a primeira página (ou a única página, se couber)
+          pdf.addImage(imgData, 'PNG', margin, margin, usableWidth, imgHeight);
+          heightLeft -= usableHeight;
+
+          // Adiciona páginas subsequentes se o conteúdo for maior
+          while (heightLeft > 0) {
+            position -= usableHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', margin, position + margin, usableWidth, imgHeight);
+            heightLeft -= usableHeight;
+          }
+          
+          pdf.save('relatorio_velocidade_terra.pdf');
+          showLoading(false);
+
+        }).catch(error => {
+          // Restaurar a visibilidade em caso de erro
+          pdfReport.style.display = originalDisplay;
+          console.error('Erro ao gerar PDF:', error);
+          alert('Erro ao gerar PDF. Tente novamente.');
+          showLoading(false);
+        });
+      }, 100); // Pausa de 100ms
+    });
+  </script>
+</body>
+</html>
