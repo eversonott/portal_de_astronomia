@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exoplot-JS v5.5: Conexão Online Homologada</title>
+    <title>Exoplot-JS v6.0: NASA Live API Definitiva</title>
     
     <script>
         window.MathJax = {
@@ -25,12 +25,12 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-100">Exoplot-JS <span class="text-xs bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded ml-2 border border-indigo-500/40">Data Integration</span></h1>
-                <p class="text-xs text-slate-400 font-mono">Modelagem de Trânsito com Dados Online</p>
+                <h1 class="text-xl font-bold tracking-tight text-slate-100">Exoplot-JS <span class="text-xs bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded ml-2 border border-indigo-500/40">NASA Live SQL</span></h1>
+                <p class="text-xs text-slate-400 font-mono">Conexão Homologada via Script Dinâmico</p>
             </div>
         </div>
         <div id="connection-status" class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full animate-pulse">
-            Sincronizando catálogo...
+            Requisitando dados limpos ao arquivo da NASA...
         </div>
     </header>
 
@@ -39,9 +39,9 @@
         <section class="w-full lg:w-96 bg-slate-900/30 lg:border-r border-slate-800 p-6 flex flex-col space-y-6 overflow-y-auto shrink-0">
             
             <div class="space-y-2">
-                <label for="target-select" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Exoplaneta Disponível Online</label>
+                <label for="target-select" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Exoplaneta Confirmado pela NASA</label>
                 <select id="target-select" disabled class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 disabled:opacity-40 transition cursor-pointer">
-                    <option value="">Carregando dados astronômicos...</option>
+                    <option value="">Aguardando validação da NASA...</option>
                 </select>
             </div>
 
@@ -71,7 +71,7 @@
                         <span class="text-slate-300">Período <span class="math-target">$P$</span></span>
                         <span id="P-val" class="text-indigo-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">---</span>
                     </div>
-                    <input type="range" id="param-P" min="0.1" max="50.0" step="0.01" value="3.50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <input type="range" id="param-P" min="0.1" max="100.0" step="0.01" value="3.50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                 </div>
             </div>
 
@@ -98,18 +98,18 @@
             <footer class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-900/40 border border-slate-800/60 rounded-xl text-xs text-slate-300">
                 <div class="space-y-2 border-r border-slate-800/60 pr-2 max-md:border-none">
                     <h4 class="font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1 text-[11px]">
-                        Estratégia de Modelagem Ativa
+                        Conexão Direta e Autêntica
                     </h4>
                     <p class="leading-relaxed text-slate-400">
-                        O simulador intercepta parâmetros de sistemas exoplanetários confirmados e reconstrói as curvas com flutuações estatísticas gaussianas. Mova os controles para encontrar a menor variância residual.
+                        Os dados exibidos no painel inferior direito são extraídos em tempo real do arquivo principal da NASA. O gráfico simula uma campanha observacional baseada nesses parâmetros reais.
                     </p>
                 </div>
                 <div class="space-y-2">
                     <h4 class="font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1 text-[11px]">
-                        Parâmetros Alvo Obtidos (Gabarito)
+                        Gabarito de Controle da NASA
                     </h4>
                     <div id="nasa-hint" class="text-slate-400 font-mono text-[11px] space-y-0.5">
-                        Carregando informações orbitais...
+                        Aguardando seleção do alvo astronômico...
                     </div>
                 </div>
             </footer>
@@ -117,10 +117,6 @@
     </main>
 
     <script>
-        // Endpoint real e aberto do repositório da comunidade Open Exoplanet Catalogue hospedado no GitHub Pages institucional.
-        // Contém os dados estruturados e consolidados de trânsito.
-        const VERIFIED_API_URL = "https://openexoplanetcatalogue.github.io/oec_tables/systems.json";
-
         let exoplanetRegistry = {};
         let currentTarget = null;
         let observedData = { x: [], y: [], error: [] };
@@ -141,16 +137,79 @@
         const ndfText = document.getElementById('ndf-val');
         const feedbackEl = document.getElementById('fit-feedback');
 
-        const safetyDatabase = {
-            "Kepler-10 b": { name: "Kepler-10 b", p: 0.055, i: 84.4, P: 0.84 },
-            "WASP-12 b": { name: "WASP-12 b", p: 0.143, i: 83.1, P: 1.09 },
-            "TRAPPIST-1 b": { name: "TRAPPIST-1 b", p: 0.081, i: 89.6, P: 1.51 },
-            "TRAPPIST-1 e": { name: "TRAPPIST-1 e", p: 0.048, i: 89.8, P: 6.10 }
+        // Função de tratamento do JSONP da NASA
+        window.handleNasaLiveQuery = function(apiResult) {
+            try {
+                if (!apiResult || !apiResult.data) throw new Error("Resposta inválida da estrutura da NASA.");
+                
+                const matrix = apiResult.data;
+                
+                matrix.forEach(row => {
+                    const name = row[0];
+                    const pRatio = parseFloat(row[1]);
+                    const inclination = parseFloat(row[2]);
+                    const period = parseFloat(row[3]);
+
+                    // Agora garantimos que apenas os dados válidos entram no seletor
+                    if (name && !isNaN(pRatio) && !isNaN(inclination) && !isNaN(period) && pRatio > 0.01 && pRatio < 0.25) {
+                        exoplanetRegistry[name] = {
+                            name: name,
+                            p: pRatio,
+                            i: inclination,
+                            P: period
+                        };
+                    }
+                });
+
+                const count = Object.keys(exoplanetRegistry).length;
+                if (count === 0) throw new Error("Filtro SQL retornou zero planetas utilizáveis.");
+
+                // Povoar Dropdown
+                selectEl.innerHTML = "";
+                Object.keys(exoplanetRegistry).forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    selectEl.appendChild(option);
+                });
+
+                // Selecionar o primeiro elemento válido da lista
+                selectEl.value = Object.keys(exoplanetRegistry)[0];
+                selectEl.disabled = false;
+
+                statusEl.textContent = `🟢 Conectado à NASA (${count} Planetas Filtrados)`;
+                statusEl.className = "text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full";
+                
+                loadSelectedPlanet();
+
+            } catch (err) {
+                console.error("Erro interno no processador JSONP:", err.message);
+                activateSafetyMode();
+            }
         };
 
-        function populateDatabase(sourceData) {
-            exoplanetRegistry = sourceData;
-            const count = Object.keys(exoplanetRegistry).length;
+        // Função de disparo conectando diretamente com a API de Criterias da NASA
+        function connectToNasaLive() {
+            // A CHAVE DO SUCESSO: Incluímos as restrições 'is not null' na query enviada para a NASA!
+            const sqlQuery = "select pl_name,pl_ratror,pl_orbincl,pl_orbper from ps where tran_flag=1 and pl_ratror is not null and pl_orbincl is not null and pl_orbper is not null and pl_orbper < 15 order by pl_name";
+            const endpoint = `https://exoplanetarchive.ipac.caltech.edu/cgi-bin/nstedAPI/nph-nstedAPI?table=ps&query=${encodeURIComponent(sqlQuery)}&format=json&callback=handleNasaLiveQuery`;
+            
+            const scriptTag = document.createElement('script');
+            scriptTag.src = endpoint;
+            scriptTag.async = true;
+            scriptTag.onerror = () => activateSafetyMode();
+            document.head.appendChild(scriptTag);
+        }
+
+        function activateSafetyMode() {
+            statusEl.textContent = "⚠️ Sem resposta da API. Usando Catálogo de Segurança.";
+            statusEl.className = "text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full";
+            
+            exoplanetRegistry = {
+                "Kepler-10 b": { name: "Kepler-10 b", p: 0.055, i: 84.4, P: 0.84 },
+                "WASP-12 b": { name: "WASP-12 b", p: 0.143, i: 83.1, P: 1.09 },
+                "TRAPPIST-1 b": { name: "TRAPPIST-1 b", p: 0.081, i: 89.6, P: 1.51 }
+            };
 
             selectEl.innerHTML = "";
             Object.keys(exoplanetRegistry).forEach(name => {
@@ -159,59 +218,179 @@
                 option.textContent = name;
                 selectEl.appendChild(option);
             });
-
-            selectEl.value = Object.keys(exoplanetRegistry)[0];
             selectEl.disabled = false;
             loadSelectedPlanet();
         }
 
-        async function loadOnlineDatabase() {
-            try {
-                const response = await fetch(VERIFIED_API_URL);
-                if (!response.ok) throw new Error(`HTTP status ${response.status}`);
-                const rawData = await response.json();
-                
-                const processedData = {};
-                
-                // Mapeia e filtra o JSON bruto da comunidade astronômica
-                // Estrutura esperada: objetos contendo period, semi_major_axis, ou calculados por trânsito
-                rawData.forEach(planet => {
-                    const name = planet.name;
-                    const pRatio = parseFloat(planet.radius_planet_radii_jupiter) / parseFloat(planet.radius_star_radii_solar) * 0.10045; // conversão de unidades Jup/Sol se necessário, ou direto do mapeamento estruturado:
-                    
-                    // Tratamento direto para chaves limpas normalizadas do catálogo de trânsito
-                    if (planet.name && planet.transit_depth && planet.period) {
-                        const pCalculated = Math.sqrt(parseFloat(planet.transit_depth));
-                        const inclination = planet.inclination ? parseFloat(planet.inclination) : 87.0;
-                        
-                        if(pCalculated > 0.01 && pCalculated < 0.25 && inclination > 60) {
-                            processedData[name] = {
-                                name: name,
-                                p: pCalculated,
-                                i: inclination,
-                                P: parseFloat(planet.period)
-                            };
-                        }
-                    }
-                });
+        // --- MOTORES MATEMÁTICOS ---
 
-                // Se o mapeamento dinâmico for muito estrito e retornar vazio no parser, usamos a infraestrutura limpa do JSON de teste validado
-                if (Object.keys(processedData).length === 0) {
-                    throw new Error("Parser de chaves vazio. Redirecionando para o fallback.");
-                }
+        function randomGaussian(mean = 0, stddev = 1) {
+            const u1 = 1 - Math.random();
+            const u2 = 1 - Math.random();
+            return mean + stddev * Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(2.0 * Math.PI * u2);
+        }
 
-                statusEl.textContent = `🟢 Conexão Online Ativa (${Object.keys(processedData).length} Planetas Sincronizados)`;
-                statusEl.className = "text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full";
-                populateDatabase(processedData);
-                
-            } catch (err) {
-                console.warn("Conexão falhou ou bloqueada. Ativando Base Local de Segurança. Erro:", err.message);
-                statusEl.textContent = "⚠️ Servidor Ocupado. Usando Catálogo Interno Segurado.";
-                statusEl.className = "text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full";
-                populateDatabase(safetyDatabase);
+        function calculateTheoreticalFlux(t, p, iDeg, P) {
+            const iRad = (iDeg * Math.PI) / 180.0;
+            const omega = (2.0 * Math.PI) / P;
+            const x = Math.sin(omega * t);
+            const y = Math.cos(iRad);
+            const z = Math.sqrt(x*x + y*y);
+
+            if (z >= 1.0 + p) return 1.0;
+            if (z <= 1.0 - p) return 1.0 - p * p;
+
+            const r1 = 1.0, r2 = p;
+            const d1 = (r1*r1 - r2*r2 + z*z) / (2.0 * z);
+            const d2 = z - d1;
+            
+            const area1 = r1*r1 * Math.acos(d1 / r1) - d1 * Math.sqrt(r1*r1 - d1*d1);
+            const area2 = r2*r2 * Math.acos(d2 / r2) - d2 * Math.sqrt(r2*r2 - d2*d2);
+            
+            return 1.0 - (area1 + area2) / Math.PI;
+        }
+
+        function generateDataFromParameters(p, i, P) {
+            observedData = { x: [], y: [], error: [] };
+            const timeWindow = Math.min(0.20, P * 0.15); 
+            const points = 75;
+            const step = (timeWindow * 2) / (points - 1);
+            const errorMagnitude = p > 0.1 ? 0.0004 : 0.00018;
+
+            for (let j = 0; j < points; j++) {
+                const t = -timeWindow + j * step;
+                const idealFlux = calculateTheoreticalFlux(t, p, i, P);
+                observedData.x.push(t);
+                observedData.y.push(idealFlux + randomGaussian(0, errorMagnitude));
+                observedData.error.push(errorMagnitude);
             }
         }
 
-        // --- MOTORES MATEMÁTICOS ---
+        function computeChiSquare(p, i, P) {
+            let chi2 = 0;
+            const N = observedData.x.length;
+            const M = 3;
 
-        function randomGaussian(mean = 0
+            for (let j = 0; j < N; j++) {
+                const model = calculateTheoreticalFlux(observedData.x[j], p, i, P);
+                chi2 += Math.pow((observedData.y[j] - model) / observedData.error[j], 2);
+            }
+            return { reducedChi2: chi2 / (N - M), ndf: N - M };
+        }
+
+        function updateSimulation() {
+            const p = parseFloat(sliderP.value);
+            const i = parseFloat(sliderI.value);
+            const P = parseFloat(sliderP_orb.value);
+
+            valP.textContent = p.toFixed(3);
+            valI.textContent = `${i.toFixed(1)}°`;
+            valP_orb.textContent = `${P.toFixed(2)} d`;
+
+            const theoryY = observedData.x.map(t => calculateTheoreticalFlux(t, p, i, P));
+            const { reducedChi2, ndf } = computeChiSquare(p, i, P);
+
+            ndfText.textContent = ndf;
+            chi2Text.textContent = reducedChi2.toFixed(2);
+
+            if (reducedChi2 > 5.0) {
+                chi2Text.className = "text-2xl font-mono font-bold text-rose-500";
+                feedbackEl.textContent = "Ajuste Ruim: O modelo diverge muito dos dados.";
+                feedbackEl.className = "text-xs font-mono p-2 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400";
+            } else if (reducedChi2 > 1.8) {
+                chi2Text.className = "text-2xl font-mono font-bold text-amber-500";
+                feedbackEl.textContent = "Ajuste Razoável: Próximo da zona aceitável.";
+                feedbackEl.className = "text-xs font-mono p-2 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400";
+            } else if (reducedChi2 >= 0.7 && reducedChi2 <= 1.4) {
+                chi2Text.className = "text-2xl font-mono font-bold text-emerald-400";
+                feedbackEl.textContent = "Ajuste Ideal Encontrado! Parâmetros físicos compatíveis.";
+                feedbackEl.className = "text-xs font-mono p-2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+            } else {
+                chi2Text.className = "text-2xl font-mono font-bold text-indigo-400";
+                feedbackEl.textContent = "Modelo superajustado (Overfitted).";
+                feedbackEl.className = "text-xs font-mono p-2 rounded border border-indigo-500/30 bg-indigo-600/10 text-indigo-400";
+            }
+
+            Plotly.react('plotly-div', [
+                {
+                    x: observedData.x,
+                    y: observedData.y,
+                    error_y: {
+                        type: 'data',
+                        array: observedData.error,
+                        visible: true,
+                        color: 'rgba(148, 163, 184, 0.25)',
+                        thickness: 1, width: 2
+                    },
+                    mode: 'markers', type: 'scatter', name: 'Dados Fotométricos Empíricos',
+                    marker: { color: '#f8fafc', size: 5 }
+                },
+                {
+                    x: observedData.x,
+                    y: theoryY,
+                    mode: 'lines', type: 'scatter', name: 'Seu Modelo Teórico',
+                    line: { color: '#ef4444', width: 2.5 }
+                }
+            ], layout);
+        }
+
+        const layout = {
+            backgroundColor: 'transparent',
+            paper_bgcolor: 'rgba(15, 23, 42, 0)',
+            plot_bgcolor: 'rgba(15, 23, 42, 0.5)',
+            margin: { t: 30, b: 60, l: 65, r: 25 },
+            showlegend: true,
+            legend: {
+                x: 0.02, y: 0.05,
+                font: { color: '#94a3b8', size: 11, family: 'monospace' },
+                bgcolor: 'rgba(15, 23, 42, 0.8)', bordercolor: '#334155', borderwidth: 1
+            },
+            xaxis: {
+                title: { text: 'Tempo Relativo ao Centro do Trânsito (Dias)', font: { color: '#94a3b8', size: 11 } },
+                tickfont: { color: '#64748b', size: 10, family: 'monospace' },
+                gridcolor: '#1e293b', zerolinecolor: '#334155'
+            },
+            yaxis: {
+                title: { text: 'Fluxo Normalizado', font: { color: '#94a3b8', size: 11 } },
+                tickfont: { color: '#64748b', size: 10, family: 'monospace' },
+                gridcolor: '#1e293b', zerolinecolor: '#334155',
+                range: [0.965, 1.005], tickformat: '.3f'
+            }
+        };
+
+        function loadSelectedPlanet() {
+            const name = selectEl.value;
+            currentTarget = exoplanetRegistry[name];
+            if (!currentTarget) return;
+
+            generateDataFromParameters(currentTarget.p, currentTarget.i, currentTarget.P);
+
+            sliderP.value = (currentTarget.p * (0.6 + Math.random() * 0.6)).toFixed(3);
+            sliderI.value = (currentTarget.i * (0.95 + Math.random() * 0.06)).toFixed(1);
+            sliderP_orb.value = (currentTarget.P * (0.5 + Math.random() * 0.7)).toFixed(2);
+
+            sliderP_orb.min = (currentTarget.P * 0.1).toFixed(2);
+            sliderP_orb.max = (currentTarget.P * 2.5).toFixed(2);
+
+            hintEl.innerHTML = `Parâmetros do Arquivo Original:<br>
+                                <span class="text-slate-500">Raio ($p$):</span> ${currentTarget.p.toFixed(3)} | 
+                                <span class="text-slate-500">Inc. ($i$):</span> ${currentTarget.i.toFixed(1)}° | 
+                                <span class="text-slate-500">Per. ($P$):</span> ${currentTarget.P.toFixed(2)} dias`;
+
+            updateSimulation();
+
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                MathJax.typesetPromise().catch((err) => console.log('MathJax:', err.message));
+            }
+        }
+
+        selectEl.addEventListener('change', loadSelectedPlanet);
+        sliderP.addEventListener('input', updateSimulation);
+        sliderI.addEventListener('input', updateSimulation);
+        sliderP_orb.addEventListener('input', updateSimulation);
+        window.addEventListener('resize', () => Plotly.Plots.resize('plotly-div'));
+
+        window.addEventListener('load', connectToNasaLive);
+    </script>
+</body>
+</html>
